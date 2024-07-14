@@ -217,3 +217,29 @@ int main()
 }
 ```
 
+
+
+
+
+---
+
+
+
+
+
+# Chapter10 .数组
+
+
+
+##   10.1 qsort()函数:给数组排序
+
+- **函数原型**
+
+```c++
+void qsort(void*base , size_t nmemb ,size_t size , int(*compar)(const void*,const void*))
+```
+
+- base:数组(xx)首地址
+- nmemb : 数组元素个数
+- size:元素大小
+- compar: 函数指针,排序机制
