@@ -226,3 +226,264 @@ Cman func(Cman man)
 }
 ```
 
+
+
+
+
+## 15.6 浅拷贝与深拷贝(开发经验)面试常考
+
+
+
+###  15.6.1 浅拷贝
+
+ 假若成员内有指针 , 将一个对象拷贝给另一个对象 二者的指针成员会共用一块内存区域
+
+<img src="./../../../AppData/Roaming/Typora/typora-user-images/image-20240725160512453.png" alt="image-20240725160512453" style="zoom:50%;" />
+
+```c++
+class Cman
+{
+    .......
+    Cman(const Cman& man)
+    {
+       m_ptr = man.m_ptr;
+       ........
+    }
+}
+```
+
+**<font size=4 face=宋体>这样容易导致以下问题:</font>**
+
+- 当一个对象销毁时 ,另一个对象的指针成员会变成**<font color =purple>野指针</font>**,从而造成程序崩溃
+
+- 引起堆区数据的混乱(因为堆区存放动态开辟的变量)
+
+
+
+###  15.6.2 深拷贝
+
+ 假若成员内有指针 , 将一个对象拷贝给另一个对象 二者的指针成员**不会共用**一块内存区域
+
+```c++
+class Cman
+{
+    .......
+    Cman(const Cman& man)
+    {
+       m_ptr = new int(*man.m_ptr);
+       ........
+    }
+}
+```
+
+
+
+
+
+## 15.7 初始化列表
+
+构造函数的执行可以分成两个阶段：初始化阶段和计算阶段（初始化阶段先于计算阶段）。
+
+  l 初始化阶段：全部的成员都会在初始化阶段初始化。
+
+  l 计算阶段：一般是指用于执行构造函数体内的赋值操作。<font color=blue>我们在构造函数里面敲的赋值代码都属于该阶段</font>
+
+```c++
+class Cman
+{
+    Cman(int age ,string name):m_age(age),m_name(name)
+    {
+        .......
+    }
+}
+```
+
+
+
+###  15.7.1初始化列表和赋值的区别(没看懂)
+
+1. **初始化列表**：
+   - 在对象创建时直接使用初始化列表来初始化成员变量。
+   - 如果成员变量是类对象，初始化列表会调用成员变量类的拷贝构造函数（或移动构造函数），而不会调用其默认构造函数。
+   - 这种方式通常更高效，因为它避免了先调用默认构造函数再进行赋值的过程。
+2. **赋值**：
+   - 在对象创建时，首先调用成员变量的默认构造函数来创建成员变量。
+   - 然后使用赋值操作将值赋给成员变量。
+   - **这意味着会多一次对象的默认构造和赋值操作，可能会<font color=red>降低效率</font>。**
+
+```c++
+class Cboy
+{
+public:
+	string m_name;
+	Cboy()
+	{
+		m_name.clear();
+		cout << "调用了Cboy()默认构造函数\n";
+	}
+	Cboy(string name) :m_name(name)
+	{
+		cout << "调用了Cboy(string name)构造函数\n ";
+	}
+	Cboy(const Cboy& boy)
+	{
+		m_name = boy.m_name;
+		cout << "调用了Cboy(const Cboy & boy)拷贝构造函数\n";
+	}
+
+};
+```
+
+- **赋值**
+
+  ```c++
+  	Cman(string name, int age,Cboy&boy)//:m_name(name),m_age(age) ,m_boy(boy)
+  	{
+  		m_name = "fpr";
+  		m_age = age;
+  		m_boy = boy;
+  		cout << "调用了构造函数Cman(string name, int age,Cboy&boy)\n";
+  	}
+  ```
+
+  ![赋值](./photo/image-20240725175159531.png)
+
+**先初始化 后赋值**
+
+- 初始化列表
+
+  ```c++
+  	Cman(string name, int age,Cboy&boy)//:m_name(name),m_age(age) ,m_boy(boy)
+  	{
+  		//m_name = "fpr";
+  		//m_age = age;
+  		//m_boy = boy;
+  		cout << "调用了构造函数Cman(string name, int age,Cboy&boy)\n";
+  	}
+  ```
+
+  ![初始化列表](./photo/image-20240725175326682.png)
+
+**初始化赋值操作一并完成**,因为是调用了<font color=purple>**拷贝构造函数**</font>
+
+
+
+
+
+###   15.7.2   注意事项
+
+-  **如果成员是常量和引用，必须使用初始列表，因为常量和引用只能在定义的时候初始化**(很好理解,就不展示示例了)
+
+
+
+## 15.8 const修饰成员函数(编程规范)
+
+在类的成员函数后面加const关键字，表示在成员函数中保证不会修改调用对象的成员变量。
+
+```c++
+void show() const
+{
+    .........
+}
+
+```
+
+若修改,<font face=黑体>**程序报错**</font>
+
+![image-20240725180549253](./photo/image-20240725180549253.png)
+
+
+
+### 15.9 this指针
+
+如果类的成员函数中涉及多个对象，在这种情况下需要使用this指针。
+
+this指针存放了对象的地址，它被作为隐藏参数传递给了成员函数，**指向调用成员函数的对象（调用者对象）**。
+
+每个成员函数（包括构造函数和析构函数）都有一个this指针，**可以用它访问调用者对象的成员。（可以解决成员变量名与函数形参名相同的问题）**
+
+如果在成员函数的括号后面使用const，那么将不能通过this指针修改成员变量。
+
+```c++
+class Cgirl
+{
+public:
+	string m_name;
+	int m_beauty_rk;
+    //..........省略构造函数
+	const Cgirl& pk(const Cgirl& g) const 
+	{
+		return (g.m_beauty_rk > this->m_beauty_rk) ? g : *this;
+	}
+};
+
+int main()
+{
+	Cgirl g1, g2, g3;
+	g1 = Cgirl(1,"三上");
+	g2 = Cgirl(2, "桥本");
+	g3 = Cgirl(3, "冲田");
+	const Cgirl& g = g1.pk(g2).pk(g3); //注意这种写法 C++的特性想一想cout<< << << 运算符有关?
+	cout << "最美的女孩是: " <<g.m_name << endl;
+
+}
+```
+
+
+
+
+
+## 15.9 静态成员变量
+
+
+
+- 类的静态成员具体类成员的性质 可以通过具体的对象进行访问  ,  用静态成员可以变量实现多个对象之间的数据共享，比全局变量更安全性。
+
+- **如果把类的成员声明为静态的，就可以把它与类的对象独立开来（静态成员不属于对象）。**静态成员变量在程序中只有一份（生命周期与程序运行期相同，存放在静态存储区的），不论是否创建了类的对象，也不论创建了多少个类的对象。
+
+```c++
+class CGirl                 // 超女类CGirl。
+{
+    static int m_age;                        // 年龄属性。
+public:
+    string      m_name;                    // 姓名属性。
+
+    // 两个参数的普通构造函数。
+    CGirl(const string& name, int age) { m_name = name; m_age = age; }
+    // 显示超女的姓名。
+    void showname()  { cout << "姓名：" << m_name << endl; }
+    // 显示超女的年龄。
+    static void showage() { cout << "年龄：" << m_age << endl; }
+};
+
+int CGirl::m_age=8;        // 初始化类的静态成员变量。
+
+int main()
+{
+    CGirl g1("西施1", 21), g2("西施2", 22), g3("西施3", 23);
+
+    g1.showname(); g1.showage();
+    g2.showname(); g2.showage();
+    g3.showname(); g3.showage();
+
+    CGirl::showage();
+    // cout << "CGirl::m_age=" << CGirl::m_age << endl;
+}
+
+//终端结果 :显示年龄都为23 
+
+```
+
+- 多个对象中的成员会共享一个静态成员变量 ,且无法在某个函数作用域内被修改
+
+
+
+## 15.10 简单的对象模型
+
+- 静态成员变量属于类 ,在整个程序中只有一份 不会计入到某个对象的占有空间中
+
+
+
+## 15.11 友元
+
+- 一般是将一个普通函数作为一个类的友元函数
