@@ -28,7 +28,7 @@
 	cout << (void*)s.c_str() << endl;
 ```
 
-![](./photo/屏幕截图 2024-07-24 000139.png)
+![]([./photo/屏幕截图 2024-07-24 000139.png](https://github.com/gggggwen/Cpp_primer_notes/blob/main/photo/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202024-07-24%20000139.png))
 
 **2**  几类构造函数的示例
 
