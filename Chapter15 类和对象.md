@@ -238,7 +238,7 @@ Cman func(Cman man)
 
  假若成员内有指针 , 将一个对象拷贝给另一个对象 二者的指针成员会共用一块内存区域
 
-<img src="./../../../AppData/Roaming/Typora/typora-user-images/image-20240725160512453.png" alt="image-20240725160512453" style="zoom:50%;" />
+<img src="./photo/屏幕截图 2024-07-25 160431.png" style="zoom: 50%;" />
 
 ```c++
 class Cman
