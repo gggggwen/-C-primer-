@@ -224,7 +224,30 @@ void operator delete(void* ptr)
 
 编译器看到使用new创建自定义的类的对象时，它选择成员版本的operator new()而不是全局版本的new()。
 
+```c++
+ CGirl& operator=(const CGirl& g)
+    {
+        if (this == &g) return *this;          // 如果是自己给自己赋值。
+        
+        if (g.m_ptr == nullptr)    // 如果源对象的指针为空，则清空目标对象的内存和指针。
+        {
+            if (m_ptr != nullptr) { delete m_ptr; m_ptr = nullptr; }
+        }
+        else    // 如果源对象的指针不为空。
+        {
+            // 如果目标对象的指针为空，先分配内存。
+            if (m_ptr == nullptr) m_ptr = new int;
+            // 然后，把源对象内存中的数据复制到目标对象的内存中。
+            memcpy(m_ptr, g.m_ptr, sizeof(int));
+        }
+        
+        m_bh = g.m_bh; m_name = g.m_name;
+        cout << "调用了重载赋值函数。\n" << endl; 
+        return *this;
+    }
+};
 
+```
 
 
 
@@ -302,6 +325,8 @@ public:
 	CGirl(int num, int size) { m_size = size, m_num = num;std::cout << "调用了构造函数CGirl()\n"; }
 	~CGirl() { std::cout << "调用了析构函数~CGirl()\n"; }
 };
+
+
 ```
 
 - 为什么`m_pool`需要用`static`修饰?
@@ -309,7 +334,7 @@ public:
   ​     new和delete重载默认为`static`修饰 , 又由于<font color =red>**静态成员函数只能操作静态成员变量, 非静态成员函数只能操作非静态成员变量**</font>,  初始化和释放内存池的函数也应当用`static`修饰。 且注意<font color =blue>**静态成员变量需要在类外进行初始化 **</font>
 
 ```c++
-char* CGirl::m_pool =nullptr
+char* CGirl::m_pool =nullptr;
 ```
 
 - 为什么重载的delete函数,想要释放**内存池资源**不需要调用`free`?
@@ -321,6 +346,8 @@ char* CGirl::m_pool =nullptr
 
 
 ## 16.7 一元运算符重载
+
+
 
 可重载的一元运算符。
 
@@ -341,3 +368,68 @@ char* CGirl::m_pool =nullptr
 非成员函数版：`CGirl &operator++(CGirl &);  // ++前置`
 
 非成员函数版：`CGirl operator++(CGirl &,int); // 后置++`
+
+
+
+
+
+## 16.8 自动类型转换
+
+对于内置类型，如果两种数据类型是兼容的，C++可以自动转换，如果从更大的数转换为更小的数，可能会被截断或损失精度。
+
+**如果某种类型与类相关，从某种类型转换为类类型是有意义的。**`string str = "我是一只傻傻鸟。";`
+
+在C++中，<font color = red>**将一个参数的构造函数用作自动类型转换函数，它是自动进行的，不需要显式的转换**</font>
+
+```c++
+CGirl(int num ) 
+{
+     m_numm = num ;m_name.clear() ; m_weight  = 0 ;
+}
+```
+
+
+
+```c++
+CGirl g1(8);     // 常规的写法。
+
+CGirl g1 = CGirl(8);  // 显式转换。
+
+CGirl g1 = 8;     // 隐式转换。
+
+CGirl g1;     // 创建对象。
+g1 = 8;      // 隐式转换，用CGirl(8)创建临时对象，再赋值给g。 这种既会调用默认构造函数也会进行类型转换
+```
+
+
+
+<font color = blue>**但是注意:如果自动类型转换有二义性，编译将报错。**</font>
+
+```c++
+short func()
+{return 10 ;}
+
+int main()
+{
+    CGirl g1 = 10 ;
+    //报错 
+}
+```
+
+如果说在`CGirl`类中既有`double m_weight` 又有 `int m_num` ,且**同时定义两种变量数据类型的自动类型转换函数**, 编译器将会报错因为它不知道该调用哪个类型转换函数
+
+###     16.8.1 explicit
+
+将构造函数用作自动类型转换函数似乎是一项不错的特性，但有时候会导致意外的类型转换。(比如我上面说的例子)<font color = blue>explicit关键字用于关闭这种自动特性，但仍允许显式转换</font>。
+
+```c++
+explicit CGirl(int bh);
+
+CGirl g=8;    // 错误。
+
+CGirl g=CGirl(8); // 显式转换，可以。
+
+CGirl g=(CGirl)8; // 显式转换，可以。
+```
+
+在实际开发中，<font color = purple>**如果强调的是构造，建议使用explicit，如果强调的是类型转换，则不使用explicit。**</font>
