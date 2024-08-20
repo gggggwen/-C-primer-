@@ -53,8 +53,6 @@ class 派生类名:［继承方式］基类名
 
 <font color = red>**using只能改变基类中public和protected成员的访问权限，不能改变private成员的访问权限，因为基类中的private成员在派生类中是不可见的，根本不能使用**</font>
 
-
-
 ```c++
 访问权限:
    using 基类名::基类成员名 ; //将权限修改
